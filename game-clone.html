@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Roblox Game Cloner — place file duplication script</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #0B0E14;
+    --surface: #12161F;
+    --surface-2: #171C27;
+    --line: #232A38;
+    --text: #E4E7EE;
+    --muted: #7A8296;
+    --amber: #E8A33D;
+    --teal: #3DDC97;
+  }
+  *{ margin:0; padding:0; box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:'IBM Plex Sans', sans-serif;
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+  .mono{ font-family:'IBM Plex Mono', monospace; }
+  a{ color:inherit; }
+  ::selection{ background:var(--amber); color:#0B0E14; }
+
+  .wrap{
+    max-width:860px;
+    margin:0 auto;
+    padding:0 24px;
+  }
+
+  /* ---- nav ---- */
+  header{
+    position:sticky; top:0; z-index:20;
+    background:rgba(11,14,20,0.85);
+    backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--line);
+  }
+  .nav{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:16px 24px;
+    max-width:860px; margin:0 auto;
+  }
+  .brand{
+    font-family:'IBM Plex Mono', monospace;
+    font-weight:600;
+    font-size:15px;
+    letter-spacing:0.02em;
+    display:flex; align-items:center; gap:8px;
+  }
+  .brand .dot{ color:var(--amber); }
+  .nav a.cta{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:13px;
+    color:var(--text);
+    border:1px solid var(--line);
+    padding:7px 14px;
+    border-radius:3px;
+    text-decoration:none;
+    transition:border-color .15s ease, color .15s ease;
+  }
+  .nav a.cta:hover{ border-color:var(--amber); color:var(--amber); }
+
+  /* ---- hero ---- */
+  .hero{
+    padding:88px 0 64px;
+  }
+  .eyebrow{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    color:var(--teal);
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    margin-bottom:18px;
+    display:flex; align-items:center; gap:8px;
+  }
+  .eyebrow::before{
+    content:"";
+    width:7px; height:7px;
+    background:var(--teal);
+    border-radius:50%;
+    display:inline-block;
+  }
+  h1{
+    font-family:'IBM Plex Mono', monospace;
+    font-weight:600;
+    font-size:clamp(32px, 5.5vw, 52px);
+    line-height:1.08;
+    letter-spacing:-0.01em;
+    margin-bottom:20px;
+  }
+  h1 .accent{ color:var(--amber); }
+  .lead{
+    color:var(--muted);
+    font-size:17px;
+    max-width:560px;
+    margin-bottom:36px;
+  }
+  .download-btn{
+    display:inline-flex;
+    flex-direction:column;
+    gap:4px;
+    background:var(--amber);
+    color:#0B0E14;
+    text-decoration:none;
+    padding:14px 22px;
+    border-radius:5px;
+    font-weight:600;
+    font-size:15px;
+    transition:transform .15s ease, box-shadow .15s ease;
+  }
+  .download-btn:hover{
+    transform:translateY(-1px);
+    box-shadow:0 6px 20px rgba(232,163,61,0.25);
+  }
+  .download-btn .dl-meta{
+    font-size:11px;
+    font-weight:500;
+    opacity:0.7;
+  }
+  .badges{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+    margin-top:16px;
+  }
+  .badge{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11.5px;
+    color:var(--muted);
+    border:1px solid var(--line);
+    background:var(--surface);
+    padding:5px 10px;
+    border-radius:4px;
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+  }
+  .badge .b-dot{
+    width:6px; height:6px;
+    border-radius:50%;
+    background:var(--teal);
+    flex-shrink:0;
+  }
+  .badge.warn .b-dot{ background:var(--amber); }
+
+  /* ---- clone visual (signature element) ---- */
+  .clone-stage{
+    position:relative;
+    height:180px;
+    margin:44px 0 8px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .file-card{
+    width:200px;
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:6px;
+    padding:16px 18px;
+    position:absolute;
+    transition:transform .6s cubic-bezier(.2,.8,.2,1), border-color .6s ease, opacity .6s ease;
+  }
+  .file-card .fname{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:13px;
+    font-weight:600;
+    margin-bottom:8px;
+  }
+  .file-card .fmeta{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    color:var(--muted);
+  }
+  .file-card.original{
+    transform:translateX(-64px);
+    z-index:2;
+  }
+  .file-card.clone{
+    transform:translateX(64px) rotate(0deg);
+    border-color:var(--teal);
+    opacity:0.55;
+  }
+  .clone-stage.animate .file-card.clone{
+    animation: peel 1.1s cubic-bezier(.2,.8,.2,1) forwards;
+  }
+  @keyframes peel{
+    0%{ transform:translateX(0px) rotate(0deg); opacity:0; }
+    100%{ transform:translateX(64px) rotate(-2deg); opacity:0.9; }
+  }
+  .clone-arrow{
+    font-family:'IBM Plex Mono', monospace;
+    color:var(--amber);
+    font-size:20px;
+    z-index:3;
+  }
+  @media (prefers-reduced-motion: reduce){
+    .clone-stage.animate .file-card.clone{ animation:none; opacity:0.9; }
+  }
+
+  /* ---- terminal block ---- */
+  .terminal{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:6px;
+    overflow:hidden;
+    margin:20px 0 8px;
+  }
+  .terminal .bar{
+    display:flex; gap:6px;
+    padding:10px 14px;
+    border-bottom:1px solid var(--line);
+    background:var(--surface-2);
+  }
+  .terminal .bar span{
+    width:9px; height:9px; border-radius:50%;
+    background:#3A4152;
+  }
+  .terminal pre{
+    padding:18px 20px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:13.5px;
+    line-height:1.7;
+    overflow-x:auto;
+  }
+  .terminal .c1{ color:var(--muted); }
+  .terminal .c2{ color:var(--teal); }
+  .terminal .c3{ color:var(--amber); }
+
+  /* ---- sections ---- */
+  section{ padding:56px 0; border-top:1px solid var(--line); }
+  h2{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:13px;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    color:var(--muted);
+    margin-bottom:28px;
+  }
+
+  /* diff-style feature list */
+  .diff{
+    display:flex; flex-direction:column;
+    border:1px solid var(--line);
+    border-radius:6px;
+    overflow:hidden;
+  }
+  .diff-row{
+    display:flex;
+    gap:14px;
+    padding:16px 20px;
+    background:var(--surface);
+    border-bottom:1px solid var(--line);
+  }
+  .diff-row:last-child{ border-bottom:none; }
+  .diff-row .plus{
+    font-family:'IBM Plex Mono', monospace;
+    color:var(--teal);
+    font-weight:600;
+    flex-shrink:0;
+  }
+  .diff-row .txt strong{ display:block; font-size:15px; margin-bottom:3px; }
+  .diff-row .txt span{ color:var(--muted); font-size:14px; }
+
+  /* numbered process — real sequence, so numbers are justified */
+  .steps{
+    display:flex; flex-direction:column;
+    gap:0;
+  }
+  .step{
+    display:flex; gap:20px;
+    padding:22px 0;
+    border-bottom:1px solid var(--line);
+  }
+  .step:last-child{ border-bottom:none; }
+  .step .num{
+    font-family:'IBM Plex Mono', monospace;
+    color:var(--amber);
+    font-size:14px;
+    font-weight:600;
+    flex-shrink:0;
+    width:28px;
+  }
+  .step .stxt strong{ display:block; font-size:15.5px; margin-bottom:4px; }
+  .step .stxt span{ color:var(--muted); font-size:14px; }
+
+  .note{
+    margin-top:28px;
+    font-size:13px;
+    color:var(--muted);
+    border-left:2px solid var(--amber);
+    padding-left:14px;
+  }
+
+  footer{
+    border-top:1px solid var(--line);
+    padding:32px 0 48px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    color:var(--muted);
+    display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;
+  }
+  footer .made{ color:var(--muted); }
+  footer .made .amber{ color:var(--amber); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="nav">
+    <div class="brand">game_clone<span class="dot">.zip</span></div>
+    <a class="cta" href="gamecloner/game_clone.zip" download>Download ↓</a>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <section class="hero" style="border-top:none;">
+    <div class="eyebrow">What the tool does:</div>
+    <h1>Duplicate a Roblox<br><span class="accent">game</span> with just a place id.</h1>
+    <p class="lead">A small Python tool that clones a Roblox place feauturing a full tree parser</p>
+
+    <a class="download-btn" id="download" href="gamecloner/game_clone.zip" download>
+      <span class="mono">↓ Download game_clone.zip</span>
+      <span class="dl-meta mono">v1.0 · free forever</span>
+    </a>
+
+    <div class="badges">
+      <span class="badge warn"><span class="b-dot"></span>Windows only — Linux support coming soon</span>
+      <span class="badge"><span class="b-dot"></span></span>
+    </div>
+
+    <div class="clone-stage" id="stage">
+      <div class="file-card original">
+        <div class="fname">Last update:</div>
+        <div class="fmeta">Fixed some remote events failing to copy, other bug fixes.</div>
+      </div>
+      <div class="clone-arrow">→</div>
+      <div class="file-card clone">
+        <div class="fname">The quickest method</div>
+        <div class="fmeta">Supports any game</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="usage">
+    <h2>Usage</h2>
+    <div class="terminal">
+      <div class="bar"><span></span><span></span><span></span></div>
+      <pre><span class="c1">1.</span> Unzip <span class="c2">game_clone.zip</span> using a tool like <span class="c2">7-Zip</span> (or your OS's built-in unzip)
+<span class="c1">2.</span> Open a terminal in the extracted folder
+<span class="c1">3.</span> <span class="c2">python</span> main.py</pre>
+    </div>
+  </section>
+
+  <section>
+    <h2>What it does</h2>
+    <div class="diff">
+      <div class="diff-row">
+        <span class="plus">+</span>
+        <div class="txt"><strong>Full instance copy</strong><span>Reads the entire object tree of a place file, not just the top-level structure.</span></div>
+      </div>
+      <div class="diff-row">
+        <span class="plus">+</span>
+        <div class="txt"><strong>Script preservation</strong><span>Keeps Script, LocalScript, and ModuleScript source intact in the duplicate.</span></div>
+      </div>
+      <div class="diff-row">
+        <span class="plus">+</span>
+        <div class="txt"><strong>Local, offline output</strong><span>Outputs a zip file containing the games full source code.</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>How it works</h2>
+    <div class="steps">
+      <div class="step">
+        <div class="num">01</div>
+        <div class="stxt"><strong>Point it at a place id</strong><span>Pass the place id to the game you want to clone</span></div>
+      </div>
+      <div class="step">
+        <div class="num">02</div>
+        <div class="stxt"><strong>Parse the object tree</strong><span>The script walks every instance and its properties, scripts included.</span></div>
+      </div>
+      <div class="step">
+        <div class="num">03</div>
+        <div class="stxt"><strong>Write the clone</strong><span>A new, independent place file is saved to the output path you chose.</span></div>
+      </div>
+    </div>
+    <p class="note">Built for backing up and iterating on games you already own — not for copying anyone else's work.</p>
+  </section>
+
+</div>
+
+<footer>
+  <div class="wrap" style="display:flex; justify-content:space-between; width:100%; flex-wrap:wrap; gap:10px;">
+    <span class="made">made by <span class="amber">Fred</span></span>
+    <span>game_clone.zip</span>
+  </div>
+</footer>
+
+<script>
+  const stage = document.getElementById('stage');
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if(e.isIntersecting) stage.classList.add('animate'); });
+  }, { threshold: 0.4 });
+  obs.observe(stage);
+</script>
+
+</body>
+</html>
+
